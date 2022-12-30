@@ -1,0 +1,5 @@
+runs
+videos
+*.pt
+model_data/*.pth
+__pycache__/

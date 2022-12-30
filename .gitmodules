@@ -1,0 +1,6 @@
+[submodule "deep_sort"]
+	path = deep_sort
+	url = https://github.com/nwojke/deep_sort
+[submodule "yolov7"]
+	path = yolov7
+	url = https://github.com/WongKinYiu/yolov7

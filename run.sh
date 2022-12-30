@@ -1,0 +1,1 @@
+python detect.py --weights yolov7/yolov7.pt --conf 0.5 --source videos/Double1.mp4 --classes 0
