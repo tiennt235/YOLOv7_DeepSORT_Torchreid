@@ -137,6 +137,7 @@ def detect(save_img=False):
         if classify:
             pred = apply_classifier(pred, modelc, img, im0s)
 
+        deepsort_time = 0    
         tmp_ids = []
         # Process detections
         for i, det in enumerate(pred):  # detections per image
@@ -179,7 +180,8 @@ def detect(save_img=False):
                 tracker.predict()
                 tracker.update(detections)      
                 t5 = time_synchronized()
-                  
+                deepsort_time += 1E3 * (t5 - t4)
+
                 # Print results
                 for c in det[:, -1].unique():
                     n = (det[:, -1] == c).sum()  # detections per class
@@ -195,21 +197,22 @@ def detect(save_img=False):
                     cls = 0
                     
                     # reid
-                    tmp_ids.append(track_id)
-                    area = (int(bbox[2]) - int(bbox[0])) * (int(bbox[3]) - int(bbox[1]))
-                    if track_id not in track_cnt:
-                        track_cnt[track_id] = [
-                            [frame_idx, int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3]), area]
-                        ]
-                        frames_by_id[track_id] = [im0[int(bbox[1]):int(bbox[3]), int(bbox[0]):int(bbox[2])]]
-                    else:
-                        track_cnt[track_id].append([
-                            frame_idx,
-                            int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3]),
-                            area
-                        ])
-                        frames_by_id[track_id].append(im0[int(bbox[1]):int(bbox[3]), int(bbox[0]):int(bbox[2])])
-                        
+                    if bbox[0] >= 0 and bbox[1] >= 0 and bbox[3] < h and bbox[2] < w:
+                        tmp_ids.append(track_id)
+                        area = (int(bbox[2]) - int(bbox[0])) * (int(bbox[3]) - int(bbox[1]))
+                        if track_id not in track_cnt:
+                            track_cnt[track_id] = [
+                                [frame_idx, int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3]), area]
+                            ]
+                            frames_by_id[track_id] = [im0[int(bbox[1]):int(bbox[3]), int(bbox[0]):int(bbox[2])]]
+                        else:
+                            track_cnt[track_id].append([
+                                frame_idx,
+                                int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3]),
+                                area
+                            ])
+                            frames_by_id[track_id].append(im0[int(bbox[1]):int(bbox[3]), int(bbox[0]):int(bbox[2])])
+                            
                         
                     if save_txt:
                         # Write MOT compliant results to file
@@ -221,7 +224,7 @@ def detect(save_img=False):
                         c = int(cls)  # integer class
                         track_id = int(track_id)  # integer id
                         label = f'{names[c]} {track_id}'
-                        plot_one_box(bbox, im0, label=label, color=colors[int(track_id)], line_thickness=2)
+                        plot_one_box(bbox, im0, label=label, color=colors[int(0)], line_thickness=2)
                         
                 # reid
                 ids_per_frame.append(set(tmp_ids))
@@ -239,7 +242,7 @@ def detect(save_img=False):
                     #     plot_one_box(xyxy, im0, label=label, color=colors[int(cls)], line_thickness=1)
 
             # Print time (inference + NMS)
-            print(f'{s}Done. ({(1E3 * (t2 - t1)):.1f}ms) Inference, ({(1E3 * (t3 - t2)):.1f}ms) NMS, ({(1E3 * (t5 - t4)):.1f}ms) DeepSORT')
+            print(f'{s}Done. ({(1E3 * (t2 - t1)):.1f}ms) Inference, ({(1E3 * (t3 - t2)):.1f}ms) NMS, ({(deepsort_time):.1f}ms) DeepSORT')
 
             # Stream results
             if view_img:
@@ -335,7 +338,7 @@ def detect(save_img=False):
                         # print('frame {} f0 {}'.format(frame,f[0]))
                         if frame_idx == f[0]:
                             label = f'{names[0]} {idx}'
-                            plot_one_box([f[1], f[2], f[3], f[4]], frame, label=label, color=colors[int(idx)], line_thickness=2)
+                            plot_one_box([f[1], f[2], f[3], f[4]], frame, label=label, color=colors[int(0)], line_thickness=2)
             vid_writer.write(frame)
         vid_writer.release()
 
